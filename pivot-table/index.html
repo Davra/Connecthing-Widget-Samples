@@ -1,0 +1,392 @@
+<html>
+
+<head>
+    <script src="/ui/connecthing/vendors/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdn.flexmonster.com/2.4/flexmonster.js"></script>
+    <script src="index.js"></script>
+    <script src="/ui/connecthing/assets/widget-utilities.js"></script>
+    
+    <!-- PNotify -->
+    <link href="/ui/connecthing/vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/ui/connecthing/vendors/pnotify/dist/pnotify.css" rel="stylesheet">
+
+
+    <script src="/ui/connecthing/vendors/pnotify/dist/pnotify.js"></script>
+</head>
+
+<body style="background: #FFFFFF">
+    <div id="pivot-container"></div>
+    
+    <script>
+    
+        var metricsCache = {};
+        var deviceCache = {};
+        var config = {};
+        var filters = {};
+        var table = null;
+        var suppliedContext = null;
+        var arrayOfMetricsToShow = [];
+        
+        // This gets called by the outer frame if the context is to be provided
+        function connecthingWidgetInit(context){
+            suppliedContext = context;
+            context.filters.subscribe(function(change) {
+                updateTable();
+            });
+            init(context);
+        }
+        
+        var init = function(context) {
+            widgetUtils.loadWidgetSettings(function(error, configFromWidgetConfig){
+                if(!error){
+                    config = configFromWidgetConfig;
+                    loadMetricsCache(function() {
+                        updateTable();       
+                    });
+                } else {
+                    console.log('Failed to load widget config');
+                }
+            });
+        };
+        
+        // If the user has specified an alarm event we need to agdd the generic davranetworks.alarm metric name to the list
+        var includeAlarms = function() {    
+            var includeAlarms = false;
+            
+            for (var index = 0; index < arrayOfMetricsToShow.length; index++) {
+                var metricName = arrayOfMetricsToShow[index].name;
+                var metricMetaData = metricsCache[metricName];
+                if (metricMetaData.group === 'davranetworks.alarm') {
+                    includeAlarms = true;
+                    break;
+                }
+            }
+            
+            return includeAlarms;
+        }
+        
+        var createTable = function(data) {
+            var chartConfig = {
+                componentFolder: "https://cdn.flexmonster.com/2.4/",
+                container: "pivot-container",
+                toolbar: true,
+                report: {
+                    dataSource: {
+                        data: data
+                    },
+                    options: {
+                        datePattern: "yyyy-MM-dd HH:mm:ss"
+                    }
+                }
+            };
+            
+            chartConfig = $.extend(true, {}, chartConfig, config.chartCfg);
+            
+            if (config.report) {
+                chartConfig.report = config.report;
+                chartConfig.report.dataSource.data = data;
+                
+            }
+            else {
+                chartConfig.report.measures = [];
+                $.each(arrayOfMetricsToShow, function(index, metric) {
+                    chartConfig.report.measures.push({ uniqueName: metricsCache[metric.name].label, caption:  metricsCache[metric.name].label });
+                });
+            }
+            
+            var pivot = new Flexmonster(chartConfig);
+            pivot.save = function() {
+                
+                config.report = this.getReport();
+                config.report.dataSource = [];
+
+                widgetUtils.saveWidgetSettings(JSON.stringify(config), function(err, data) {
+                    if (!err) {
+                        widgetUtils.PNotifySuccess("Saved Pivot table data.");
+                    }
+                    else {
+                        widgetUtils.PNotifyError("Could not save Pivot table data.", err);
+                    }
+                });
+            }
+            
+            return pivot;
+        }
+        
+        var updateTable = function() {
+            filters = suppliedContext.filters.getFilterValues();
+            
+            buildQuery(function(err, query) {
+                if (!err) {
+                    doRequest(query, function(err, data) {
+                        console.log("## refrest table !!", data);
+                        refreshTable(data);
+                    });
+                }
+            });
+        }
+        
+        var refreshTable = function(data) {
+            createTable(data);
+        }
+        
+        var buildQuery = function(callback) {
+            console.log('#### buildQuery starting with filters and config:', filters, config);
+            
+            // A local variable object which will be the query to send to the API endpoint
+            var tmpQuery = {
+                metrics: [],
+            };
+                                
+            widgetUtils.getMetricsListFromServer(function (err, listOfAllMetrics) {     
+                if(err && err != null) {
+                    widgetUtils.PNotifyError("Could not retrieve list of metrics from server");
+                }    
+                cachedListOfAllMetrics = listOfAllMetrics;  // Want to store this in an array for later as the metric has a label which we wish to use instead of the name
+                // Create an array of each of the metrics to show the user. May be influenced by config settings.
+                arrayOfMetricsToShow = [];
+                $(config.metrics).each(function(index, item) {
+                    arrayOfMetricsToShow.push({ name: item})
+                });
+                
+                console.log('arrayOfMetricsToShow: ', arrayOfMetricsToShow);
+                var tags = config.groupByTags;
+                // Construct the API query. Iterate through each applicable metric
+                for (i = 0; i < arrayOfMetricsToShow.length; i++) {
+                    // Set up a basic query item for each metric
+                    var metric = {
+                        name: arrayOfMetricsToShow[i].name,
+                        group_by: [
+                            {
+                                name: "tag",
+                                tags: tags
+                            }
+                        ],
+                        tags: {
+                        }
+                    };
+                    
+                    // If a device is chosen, it is specified as a tag in the metrics object
+                    // eg. "tags": { "deviceId": ["1"] }
+                    if(getChosenDevice() != null) {
+                        metric.tags.deviceId = [getChosenDevice()];
+                    }
+                    
+                    // An aggregator may be specified in the widgetConfig
+                    // eg. { "name": "avg", "align_sampling": true, "sampling": {"unit": "minutes", "value": "1"} }
+                    if(config.metricIncludeExclude && config.metricIncludeExclude.aggregator) {
+                        metric.aggregators = [config.metricIncludeExclude.aggregator];
+                    }
+                    
+                    tmpQuery.metrics.push(metric);
+                }
+                    
+                if (includeAlarms()) {
+                    var metric = {
+                        name: 'davranetworks.alarm',
+                        group_by: [
+                            {
+                                name: "tag",
+                                tags: tags
+                            }
+                        ],
+                        tags: {
+                        }
+                    };
+                    
+                    if(getChosenDevice() != null) {
+                        metric.tags.deviceId = [getChosenDevice()];
+                    }
+                    tmpQuery.metrics.push(metric);
+                }
+        
+                // For timerange, examine if there is one specified at page level filter
+                if(filters.timerange && filters.timerange.startTime) {
+                    tmpQuery.start_absolute = filters.timerange.startTime;
+                }
+                if(filters.timerange && filters.timerange.endTime) {
+                    tmpQuery.end_absolute = filters.timerange.endTime;
+                }
+                // For timerange, override if there is one specified at widget level config
+                if(config.hasOwnProperty('timerange') && config.timerange != null && config.timerange.startTime && config.timerange.endTime) {
+                    tmpQuery.start_absolute = config.timerange.startTime;
+                    tmpQuery.end_absolute = config.timerange.endTime;
+                }
+                console.log('Query for API has been constructed as: ', tmpQuery);
+                callback(null, tmpQuery);
+            });
+        };
+        
+        var getChosenDevice = function() {
+            var chosenDevice = null;
+            // For a device, examine if there is one specified at page level filter
+            if(filters.tags && filters.tags.deviceId) {
+               chosenDevice = filters.tags.deviceId[0];
+            }
+            return chosenDevice;
+        }
+        var doRequest = function(query, callback){
+            
+            if ((typeof query === 'object') && (query != undefined)) {
+                if( (query.metrics != undefined) && 
+                    (query.start_absolute > 0) && 
+                    (query.end_absolute > 0) && 
+                    (query.metrics && query.metrics.length > 0))
+                {
+                    var querytolaunch = query;
+                    
+                    var url = "/api/v1/timeseriesData";
+                    $.ajax(url, {
+                        cache: false,
+                        async: true,
+                        dataType: "json",
+                        data: JSON.stringify(querytolaunch),
+                        method: "POST",
+                        processData: false,
+                        error: function(xhr, status, err){
+                            console.error("Error requesting timeseries Data");
+                            callback("Error requesting timeseries Data");
+                        },
+                        success: function(data, status, xhr){
+                            formatData(data, callback);
+                        }
+                    });
+                }
+            }
+        };
+        
+        function formatData(data, callback) {
+        
+            var timestampIndex = {};
+            var records = [];
+            var tags = config.groupByTags;
+            
+            // Push meta data record this tells flexmonster what the field types are
+            var record = {};
+            record["timestamp"] = { type: "date" };
+            $.each(tags, function(index, tag) {
+                record[tag] = {type: "string"};
+            });
+    
+            $.each(arrayOfMetricsToShow, function(index, metric) {
+                record[metricsCache[metric.name].label] = {type: "number"};
+            });
+    
+            records.push(record);
+            
+            getDataTags(function(err, dataTags) {
+                for (var i = 0; i < data.queries.length; i++) {
+                
+                    for (var resultIndex = 0; resultIndex < data.queries[i].results.length; resultIndex++) {
+                        var metricResults = data.queries[i].results[resultIndex];
+                        var name = metricResults.name;
+                        // Get the tag values 
+                        if (metricResults.tags) {
+                            
+                            var rowsToRead = metricResults.values.length;
+                            for (var j = 0; j < rowsToRead; j++) {
+                                var timestamp = metricResults.values[j][0];
+                                var value = metricResults.values[j][1];
+                            
+                                var dataPoint = {};
+                                dataPoint['timestamp'] = new Date(timestamp);
+                                
+                                // Pad values
+                                $.each(arrayOfMetricsToShow, function(index, metric) {
+                                    dataPoint[metricsCache[metric.name].label] = null;    
+                                });
+    
+                                if (name === 'davranetworks.alarm') {
+                                    var eventData = value;
+                                    if ($.type(eventData) === "string") {
+                                        eventData = JSON.parse(value);
+                                    }
+                                    if (metricsCache[eventData.config.name]) {
+                                        dataPoint[metricsCache[eventData.config.name].label] = 1;
+                                    }
+                                    else {
+                                        dataPoint[metricsCache[eventData.config.name]] = 1;
+                                    }
+                                }
+                                else {
+                                    dataPoint[metricsCache[name].label] = parseFloat(value);
+                                }
+                                
+        
+                                $.each(tags, function(index, tag) {
+                                    if (metricResults.tags[tag] && metricResults.tags[tag][0]) {
+                                        // do a tag look up to get the label
+                                        var tagValue = metricResults.tags[tag][0];
+                                        if (dataTags[tag + '-' + tagValue]) {
+                                            dataPoint[tag] = dataTags[tag + '-' + tagValue];
+                                        }
+                                        else {
+                                            dataPoint[tag] = tagValue;
+                                        }
+                                    }
+                                });
+                                
+                                records.push(dataPoint);
+                            }   
+                        }
+                    }
+                }    
+                
+                console.log("records ", records);
+                callback(null, records); 
+            });
+        }
+        
+        function getDataTags(callback) {
+            $.ajax({
+                type: 'GET',
+                url: '/tags/-1',
+                success: function(data) { 
+                    
+                    var dataTags = {};
+                    $(data.records).each(function(index, item) {
+                        dataTags[item.enterpriseId + '-' +  item.value] = item.label;
+                    });
+                    callback(null, dataTags);
+                }
+            });       
+        }
+        
+        function loadDeviceCache(callback) {
+            $.ajax({
+                type: 'GET',
+                url: '/api/v1/devices',
+                success: function(data) { 
+                    console.log("## data ", data);
+                    var data = JSON.parse(data);
+                    $(data.records).each(function(index, item) {
+                        deviceCache[item.id] = item;
+                    });
+                    callback(null);
+                }
+            });       
+        }
+        
+        function loadMetricsCache(callback) {
+            $.ajax({
+                type: 'GET',
+                url: '/api/v1/iotdata/meta-data',
+                success: function(data) { 
+                    var data = JSON.parse(data);
+                    $(data.fields).each(function(index, item) {
+                        metricsCache[item.name] = item;
+                    });
+                    callback(null);
+                },
+                error: function() {
+                    callback("Failed to get metrics cache");
+                }
+            });       
+        }
+        
+    </script>
+    
+
+</body>
+
+</html>

@@ -1,0 +1,177 @@
+<html>
+
+<head>
+</head>
+
+<body>
+    <!-- Basic inclusions to support the settings for widgets -->
+    <script src="/ui/connecthing/vendors/jquery/dist/jquery.min.js"></script>
+    <script src="/ui/connecthing/assets/widget-utilities.js"></script>
+
+    
+    <!-- Settings HTML for regular AmCharts configuration -->
+    <div class="settings-page accordion" >
+        <div class="panel">
+            <a class="panel-heading widget-accordion">
+                <p>Group By</p>
+                <i class="fa fa-sort-asc accordion-indicator" aria-hidden="true"></i>
+            </a>
+            <div class="panel-body">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12">Tags:</label>
+                <div class="col-md-9 col-sm-9 col-xs-12">
+                    <select id="groupByTags" class="form-control" multiple="multiple" style="height: 150px;">
+                    </select>
+                </div>
+            </div>
+            <a class="panel-heading widget-accordion">
+                <p>Metrics</p>
+                <i class="fa fa-sort-asc accordion-indicator" aria-hidden="true"></i>
+            </a>
+            <div class="panel-body">
+                <label class="control-label col-md-3 col-sm-3 col-xs-12">Metric Names:</label>
+                <div class="col-md-9 col-sm-9 col-xs-12">
+                    <select id="metricNames" class="form-control" multiple="multiple" style="height: 150px;">
+                    </select>
+                </div>
+            </div>            
+        </div>
+        <div class="panel">
+            <a class="panel-heading widget-accordion">
+                <p>JSON</p>
+                <i class="fa fa-sort-asc accordion-indicator" aria-hidden="true"></i>
+            </a>
+            <div class="panel-body">
+                <div id="text-editor-for-ace" class="settings-text-editor-for-ace"></div>
+                <div class="amChartsSettingsHelp">
+                    <i class="fa fa-question-circle-o" aria-hidden="true"></i> 
+                    <a href="https://www.flexmonster.com/api/" target="_blank">Settings documentation</a>
+                </div>
+            </div>
+        </div>
+        <div id="divUserFeedback"></div>
+        <div style="text-align: right;">
+            <br />
+            <button id="buttonSaveWidgetSettings" class="btn btn-success">Apply Settings</button>
+        </div>
+    </div>
+
+
+    <script>
+        var settings = {};
+        // Initialise with all the prerequisites of widgetUtils including loading JS files.
+        widgetUtils.initialiseSettings({}, function() {            
+            // Load the configuration for this widget
+            widgetUtils.loadWidgetSettings(function(err, widgetConfigData) {
+                if(err != null) {
+                    $("#divUserFeedback").html("Error encountered while loading configuration ", err);
+                    return;
+                }
+                settings = widgetConfigData;
+                
+                getMetricNames(widgetConfigData.metrics);
+                
+                getTags(widgetConfigData.groupByTags);
+                
+                // If a default AMCharts config is available, use that but if there is a chartconfig in widgetConfig, use that
+                if($.isEmptyObject(widgetConfigData.chartCfg)) {
+                    widgetConfigData.chartCfg = defaultChartConfig; // Defined below
+                }
+                // For a DOM textarea with id="text-editor-for-ace", fill it with string data of the chartConfig
+                widgetUtils.loadAceEditorWithData(JSON.stringify(widgetConfigData.chartCfg, null, 4));
+
+                // For the metrics section to include/exclude metrics
+                widgetSettingsMetricIncludeExclude.init(widgetConfigData);
+
+                // Create action for clicking the "apply" button
+                $('#buttonSaveWidgetSettings').click(saveWidgetSettings);
+            });
+        });
+
+
+        // Save the configuration
+        var saveWidgetSettings = function() {
+            // Get the text inside the ACE editor
+            settings.chartCfg = widgetUtils.retrieveAceEditorData();
+
+            var groupByTags = [];
+            $("#groupByTags option").each(function() {
+                if($(this).prop("selected") == true) {
+                    groupByTags.push($(this).val());
+                }
+            });
+            settings.groupByTags = groupByTags;
+            
+            settings.metrics = [];
+            $("#metricNames option").each(function() {
+                if($(this).prop("selected") == true) {
+                    settings.metrics.push($(this).val());
+                }
+            });
+            
+            widgetUtils.saveWidgetSettings(JSON.stringify(settings), function(err, data) {
+                // You could deal with the response here. By default, feedback will be sent to $("#divUserFeedback") anyway.
+            });
+        }
+
+        // Default config for Display, to go in the JSON section
+        var defaultChartConfig = {
+             toolbar: true
+        };   
+
+        function getTags(selectedTags) {
+            $.ajax({
+                type: 'GET',
+                url: '/tags/-1',
+                success: function(data) { 
+                    
+                    var metrics = {};
+                    $(data.records).each(function(index, item) {
+                        if (item.enterpriseId != 'UUID' && item.enterpriseId != 'serialNumber' && item.enterpriseId != 'tenantId') {
+                            metrics[item.enterpriseId]  = item.enterpriseId;
+                        }
+                        
+                    });
+                    metrics['deviceId']  = 'deviceId';
+                    
+                    $(Object.keys(metrics)).each(function(index, item) {
+                        $("#groupByTags").append('<option value="' + item + '">' + item + '</option>');
+                    });
+                    
+                    $("#groupByTags option").each(function() {
+                        if($.inArray($(this).val(), selectedTags) > -1) {
+                            $(this).prop("selected", true);
+                        }
+                    });
+                }
+            });       
+        }
+        
+        function getMetricNames(selectedMetricNames) {
+            $.ajax({
+                type: 'GET',
+                url: '/api/v1/iotdata/meta-data',
+                success: function(data) { 
+                    var response = JSON.parse(data);
+                    $(response.fields).each(function(index, item) {
+                        
+                        if (item.semantics === 'metric' || item.semantics === 'event') {
+                            var description = "";
+                            if (item.description) {
+                                description = ' (' + item.description + ')';
+                            }
+                            $("#metricNames").append('<option value="' + item.name + '">' + item.name + description + '</option>');
+                        }
+                    });
+                    
+                    $("#metricNames option").each(function() {
+                        if($.inArray($(this).val(), selectedMetricNames) > -1) {
+                            $(this).prop("selected", true);
+                        }
+                    });
+                }
+            });       
+        }
+    </script>
+</body>
+
+</html>

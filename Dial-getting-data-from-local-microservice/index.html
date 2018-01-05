@@ -1,0 +1,83 @@
+<html>
+    <head>
+        
+        
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" rel="stylesheet">
+
+    <link href="/ui/connecthing/vendors/normalize-css/normalize.css" rel="stylesheet">
+    <link href="/ui/connecthing/vendors/ion.rangeSlider/css/ion.rangeSlider.css" rel="stylesheet">
+    <link href="/ui/connecthing/vendors/ion.rangeSlider/css/ion.rangeSlider.skinFlat.css" rel="stylesheet">
+
+    <link href="/ui/connecthing/assets/bootstrap-gentelella-theme-for-widgets.css" rel="stylesheet">
+
+    <style>
+    </style> 
+        
+    </head>
+    <body style="background: #FFFFFF">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script> 
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/js/bootstrap.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jQuery-Knob/1.2.13/jquery.knob.min.js"></script>
+        <script src="/ui/connecthing/assets/bootstrap-gentelella-theme-for-widgets.js"></script>
+	
+        <script src="/ui/connecthing/assets/widget-utilities.js"></script> 
+        
+        
+        
+        <div id="widgetContent" style="width: 96%; margin: 2%; text-align: center;">
+            <!--<p>Display value</p>-->
+            <input class="knobinput" data-width="100" data-height="120" data-min="1" data-displayPrevious=true data-fgColor="#26B99A" value="44">
+            <br>
+            <br>
+            <div id="divfeedback" style-"width: 100%; text-align: left;">
+            </div>
+        </div>
+
+
+
+        <script>
+        
+            $(".knobinput").knob(); // Enable the knob
+                
+            // This gets called by the outer frame if the context is to be provided
+            function connecthingWidgetInit(context){
+                suppliedContext = context;
+                context.filters.subscribe(function(change) {
+                    console.log('Filters changed and are now: ', change);
+                });
+
+                setInterval(function() {
+                    getDatapointFromServer();
+                }, 5000);
+                
+            }
+            
+            
+
+
+            var getDatapointFromServer = function(valueToSend) {
+                // Construct a query for the custom microservice
+                // Run the query 
+                $.ajax("/microservices/tutorial/random", {
+                    method: "GET",
+                    error: function(xhr, status, err){
+                        console.log('Error trying to get data from microservice ', err);
+                    },
+                    success: function(resultData, status, xhr){
+                        console.log('Query result was: ', status, resultData);
+                        var numberToShow = 1;
+                        $('#divfeedback').html(' Result: ' + resultData);
+                        numberToShow = resultData;
+                        // Set the knob to show the latest value
+                        $(".knobinput").val(numberToShow).trigger('change');
+                    }
+                });
+            };
+            
+
+        </script>
+
+
+    </body>
+</html>
