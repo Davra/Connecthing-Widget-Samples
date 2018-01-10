@@ -1,0 +1,111 @@
+<html>
+
+<head>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" rel="stylesheet">
+    <link href="/ui/connecthing/assets/bootstrap-gentelella-theme-for-widgets.css" rel="stylesheet">
+</head>
+
+<body style="background: #FFFFFF">
+
+    <div id="widgetContent" class="form-horizontal form-label-left" style="width: 98%">
+        <h3>ObjectStore Explorer.</h3>
+        <input id="myInputCollection" value="sampleCollection">
+        <button type="submit" class="btn btn-success" onclick="putObjectStoreCollection()">
+            Create collection
+        </button>
+        <br>
+        <input id="myInputDocument" value='{ "test": "test2" }'>
+        <button type="submit" class="btn btn-success" onclick="postObjectStoreDocument()">
+            Create document
+        </button>
+        <br>
+        <button type="submit" class="btn btn-success" onclick="getObjectStoreFullList()">
+            Retrieve from ObjectStore
+        </button>
+        
+        <div class="ln_solid"></div>
+        Current Contents:
+        <pre id="myOutputDiv"></pre>
+    </div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.js"></script>
+    <script src="/ui/connecthing/assets/bootstrap-gentelella-theme-for-widgets.js"></script>
+    <script src="/ui/connecthing/assets/widget-utilities.js"></script>
+
+
+    <script>
+    
+        // Get the objectstore full listing
+        var getObjectStoreFullList = function() {
+            $.ajax('/api/v1/objectstore/' + $('#myInputCollection').val(), {
+                cache: false,
+                dataType: "json",
+                method: "GET",
+                processData: true,
+                contentType: "application/json",
+                error: function(xhr, status, err) {
+                    console.log('Error getting ' + urlToGet, err);
+                },
+                success: function(data, status, xhr) {
+                    console.log(data);
+                    $('#myOutputDiv').text(JSON.stringify(data, null, 4));
+                }
+            });
+        }
+         
+         
+        // Create an objectstore collection
+        var putObjectStoreCollection = function() {
+            $.ajax('/api/v1/objectstore/' + $('#myInputCollection').val(), {
+                cache: false,
+                method: "PUT",
+                data: {},
+                error: function(xhr, status, err) {
+                    console.log('Error sending ', err);
+                },
+                success: function(data, status, xhr) {
+                    console.log('Data after sending: ', data);
+                    $('#myOutputDiv').text('ObjectStore Collection created');
+                }
+            });
+        }
+
+        
+        // Post a document into a collection in objectStore
+        var postObjectStoreDocument = function() {
+            var objectToSend = $('#myInputDocument').val();
+            // Ensure the document being sent is valid JSON
+            objectToSend = JSON.stringify(JSON.parse(objectToSend));
+            $.ajax('/api/v1/objectstore/' + $('#myInputCollection').val(), {
+                cache: false,
+                data: objectToSend,
+                method: "POST",
+                contentType: "application/json",
+                error: function(xhr, status, err) {
+                    if(status != 201) {
+                        console.log('Error sending ', err);
+                    }
+                },
+                success: function(data, status, xhr) {
+                    console.log('Data after sending: ', data);
+                    $('#myOutputDiv').text('ObjectStore Document created');
+                }
+            });
+        }
+        
+        
+
+        // This function will get called by the Connecthing Platform when the iframe has fully loaded
+        // Do not change the name of this function
+        function connecthingWidgetInit(context) {
+            console.log('Init: context arrived, starting widget initialisation for widget');
+            console.log('Starting to get objectstore');
+        }
+
+    </script>
+</body>
+
+</html>
