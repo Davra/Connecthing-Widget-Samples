@@ -1,0 +1,68 @@
+<html>
+
+<head>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" rel="stylesheet">
+
+    <!-- bootstrap-daterangepicker -->
+    <link href="/ui/connecthing/vendors/bootstrap-daterangepicker/daterangepicker.css" rel="stylesheet">
+    <link href="/ui/connecthing/vendors/bootstrap-colorpicker/css/bootstrap-colorpicker.min.css" rel="stylesheet">
+    <link href="/ui/connecthing/assets/bootstrap-gentelella-theme-for-widgets.css" rel="stylesheet">
+
+</head>
+
+<body style="background: #FFFFFF">
+
+    <div id="widgetContent" class="form-horizontal form-label-left" style="width: 98%">
+        <div>
+            <h3>Widgets talking to each other.</h3>
+        </div>
+        Input message to send:
+        <input id="myInput" />
+        <hr>
+        Output, messages heard:
+        <pre id="myOutput"></pre>
+
+        <div class="ln_solid"></div>
+        
+        <br>
+    </div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.js"></script>
+    <script src="/ui/connecthing/assets/bootstrap-gentelella-theme-for-widgets.js"></script>
+    <script src="/ui/connecthing/assets/widget-utilities.js"></script>
+
+    <script>
+    
+        var widgetContext = null; // Hold a reference to the context once it is received
+        
+        // This function will get called by the Connecthing Platform when the iframe has fully loaded
+        // Do not change the name of this function
+        function connecthingWidgetInit(context) {
+            console.log('Init: context arrived, starting widget initialisation');
+            widgetContext = context; // Hold a reference to the context once it is received
+            
+            // Listen for page-level filter updates
+            context.filters.subscribe(function(filters) {
+                $('#myOutput').text(JSON.stringify(filters));
+            });
+            // Listen for messages from widgets
+            context.messageBus.subscribe('customWidgetChannel', function(data) {
+                $('#myOutput').text(data);
+            });
+        }
+        
+        // When a change is noticed in the input textbox
+        $('#myInput').keyup(function() {
+            console.log($('#myInput').val()); 
+            // Publish the content of the textbox to all widgets listening on this topic
+            widgetContext.messageBus.publish('customWidgetChannel', $('#myInput').val());
+        });
+        
+    </script>
+</body>
+
+</html>
