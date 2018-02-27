@@ -1,0 +1,101 @@
+<html>
+    <head>
+        
+        
+    <link href="/ui/connecthing/vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/ui/connecthing/vendors/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/ui/connecthing/vendors/nprogress/nprogress.css" rel="stylesheet">
+    <link href="/ui/connecthing/vendors/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet">
+    <link href="/ui/connecthing/vendors/datatables.net-select/select.dataTables.min.css" rel="stylesheet">
+    <link href="/ui/connecthing/css/custom.css" rel="stylesheet">
+
+
+    <style>
+    </style> 
+        
+    </head>
+    <body style="background: #FFFFFF">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script> 
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    
+        <script src="/ui/connecthing/assets/widget-utilities.js"></script> 
+        <script src="/ui/connecthing/vendors/datatables.net/js/jquery.dataTables.min.js"></script>
+        <script src="/ui/connecthing/vendors/datatables.net-select/dataTables.select.min.js"></script>
+        <script src="/ui/connecthing/js/custom.js"></script>
+	
+    <div class="container">
+      <div class="main_container">
+
+        <div class="col-md-6 col-sm-6 col-xs-12">
+                <div class="x_panel">
+                  <div class="x_content">
+                    <h3>People in space currently</h3>
+                    <table class="table table-striped">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Craft</th>
+                        </tr>
+                      </thead>
+                      <tbody id="tableBody">
+                        
+                      </tbody>
+                    </table>
+                    
+                    <div id="divfeedback">
+                    </div>
+                    
+                  </div>
+                </div>
+              </div>
+              
+            </div>
+        </div>
+        
+        
+        <script>
+                
+            // This gets called by the outer frame if the context is to be provided
+            function connecthingWidgetInit(context){
+                suppliedContext = context;
+                context.filters.subscribe(function(change) {
+                    console.log('Filters changed and are now: ', change);
+                });
+                
+                getDataFromExternalServer();
+                
+            }
+
+
+            var getDataFromExternalServer = function(valueToSend) {
+                // Construct a query for the custom microservice
+                // Run the query 
+                $.ajax("http://api.open-notify.org/astros.json", {
+                    method: "GET",
+                    error: function(xhr, status, err){
+                        console.log('Error trying to get data ', err);
+                    },
+                    success: function(resultData, status, xhr){
+                        console.log('Query result was: ', status, resultData);
+                        var numberToShow = 1;
+                        $('#divfeedback').html('');
+                        $('#divfeedback').html('Data from server: <pre style="text-align: left">' + 
+                            JSON.stringify(resultData, null, 4) + '</pre>');
+                        var strHtml = "";
+                        for(var tmpIndex=0; tmpIndex < resultData.people.length; tmpIndex++) {
+                            strHtml += "<tr>" +
+                                "<td>" + resultData.people[tmpIndex].name + "</td>" +
+                                "<td>" + resultData.people[tmpIndex].craft + "</td>" + 
+                                "</tr>";
+                        }
+                        $('#tableBody').html(strHtml);
+                    }
+                });
+            };
+            
+
+        </script>
+        
+        
+    </body>
+</html>
