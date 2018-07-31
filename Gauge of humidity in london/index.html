@@ -55,7 +55,7 @@ $(function() {
     console.log('--- Custom Widget Template here. Starting');
     // This url will give the current weather conditions in London
     // You could visit it using your browser to see
-    var urlToGet = 'https://stationdata.wunderground.com/cgi-bin/stationlookup?station=ILONDON581&units=metric&v=2.0&format=json';
+    var urlToGet = 'https://stationdata.wunderground.com/cgi-bin/stationlookup?station=ILONDON582&units=metric&v=2.0&format=json';
     
     $.ajax(urlToGet, {
         //contentType: "application/json",
@@ -69,7 +69,7 @@ $(function() {
             console.log('--- Custom Widget Template got a response. ', data);
             console.log('--- Exploring the data ', json); 
             // Get the first weather station returned
-            var weatherStation = json.stations.ILONDON581;
+            var weatherStation = json.stations.ILONDON582;
             console.log('--- Exploring the weatherStation ', weatherStation);
             var humidityVal = weatherStation.humidity;
             console.log('--- Exploring the weatherStation.humidity ', humidityVal);
