@@ -128,8 +128,14 @@ GOTO :EOF
 EXIT /B
 ```
 
-Run the batch file (windows) using `upload-to-widget.bat` and it will upload each of the files to the new widget template.
-Publish the widget
-Add a widget to a page, using the new template
-The Angular app will now run inside a widget within a page in an App.
+- Run the batch file (windows) using `upload-to-widget.bat` and it will upload each of the files to the new widget template.
+
+- Publish the widget using the Publish button top right in Davra platform.
+
+- Add a widget to a page, using the new template.
+
+- The Angular app will now run inside a widget within a page in an App. Eg:
+![Angular app within widget](http://help.davra.com/pics/angular-sample2.png)
+
+
 
