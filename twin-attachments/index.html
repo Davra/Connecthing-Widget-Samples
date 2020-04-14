@@ -1,0 +1,686 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="/ui/vendors/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/ui/vendors/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+
+    <!-- Datatables -->
+    <link href="/ui/vendors/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet">
+    <link href="/ui/vendors/datatables.net-buttons-bs/css/buttons.bootstrap.min.css" rel="stylesheet">
+    <link href="/ui/vendors/datatables.net-fixedheader-bs/css/fixedHeader.bootstrap.min.css" rel="stylesheet">
+    <link href="/ui/vendors/datatables.net-responsive-bs/css/responsive.bootstrap.min.css" rel="stylesheet">
+    <link href="/ui/vendors/datatables.net-scroller-bs/css/scroller.bootstrap.min.css" rel="stylesheet">
+    <link href="/ui/vendors/bootstrap-multiselect-master/dist/css/bootstrap-multiselect.css" rel="stylesheet">
+    <!-- or \vendors\datatables.net\1.10.15\datatables.min.css -->
+
+    <link href="/ui/vendors/iCheck/skins/flat/green.css" rel="stylesheet">
+    <link href="/ui/vendors/pnotify/dist/pnotify.css" rel="stylesheet">
+    <link href="/ui/vendors/switchery/dist/switchery.min.css" rel="stylesheet">
+
+    <link href="/ui/assets/bootstrap-gentelella-theme-for-widgets.css" rel="stylesheet">
+    <link href="/ui/css/davra.css" rel="stylesheet">
+
+    
+
+    
+    <style>
+        
+        span { display: inline-block; }
+        
+
+        #connecthingDataTable {
+            width: 100%; 
+            padding: 0px; 
+            border-collapse: collapse !important; 
+            table-layout: fixed;
+        }
+        #connecthingDataTable thead tr th {
+            font-size: 1.25em;
+            font-weight: 700;
+            border-bottom: 2px solid #BBB;
+            padding: 10px 10px 10px 0px;
+        }
+        #connecthingDataTable tbody td { 
+            vertical-align: middle;
+            border-bottom: 1px solid #DDD;
+            padding: 10px 10px 10px 0px;
+        }
+        #connecthingDataTable td span { 
+            line-height: initial;
+        }
+        #connecthingDataTable_wrapper .row {
+            overflow: initial;
+        }
+        #connecthingDataTable_wrapper .top .dt-buttons {
+            float: none;
+            text-align: left;
+            display: inline-block;
+            width: 30%;
+            padding: 0px;
+            margin: 0px;
+            vertical-align: top;
+        }
+        #connecthingDataTable_wrapper .top .dt-buttons .btn-group {
+            display: inline;
+        }
+        #connecthingDataTable_wrapper .top .dt-buttons .btn {
+            padding: 4px;
+        }
+        #connecthingDataTable_wrapper .top .switchfilters {
+            float: right;
+            text-align: right;
+            padding: 3px 10px 0px 0px;
+            vertical-align: top;
+        }
+        #connecthingDataTable tbody td:nth-child(1) { 
+            /* font-size: 0.001px; */
+            padding-left: 12px;
+        } 
+        #connecthingDataTable tbody td:nth-child(1) .fa { 
+            font-size: 14px;
+        }
+
+        #connecthingDataTable_filter {
+            width: auto;
+            float: right;
+            text-align: right;
+            padding: 4px 0px 0px 0px;
+            vertical-align: middle;
+        }
+        #connecthingDataTable_info {
+            padding: 0px;
+            width: 25%;
+            display: inline-block;
+            vertical-align: middle;
+            float: none;
+            text-align: left;
+        }
+        #connecthingDataTable_paginate {
+            width: 50%;
+            text-align: center;
+            display: inline-block;
+            vertical-align: middle;
+            float: none;
+            padding: 8px 0px 0px 0px;
+        }
+        #connecthingDataTable_paginate li a  {
+            color: #000;
+            background: #FFFFFF !important;
+            border: 0px;
+        }
+        #connecthingDataTable_paginate li.active a  {
+            color: #717ACF;
+            font-weight: 700;
+        }
+        #connecthingDataTable_paginate li a:hover {
+            color: #717ACF;
+        }
+        #connecthingDataTable_length {
+            width: 25%;
+            text-align: right;
+            display: inline-block;
+            vertical-align: middle;
+            float: none;
+            padding: 0px;
+        }
+        #connecthingDataTable_length label {
+            margin: 0px;
+        }
+        #connecthingDataTable_wrapper .bottom {
+            padding: 10px 0px 0px 0px;
+        } 
+        #connecthingDataTable .clickableRows:hover {
+            background: rgba(38,185,154,.07);
+            cursor: pointer;
+        }
+        #connecthingDataTable .dataTables_filter {
+            padding-bottom: 5px;
+            padding-right: 18px;
+        }
+        #connecthingDataTable .dataTables_filter label input {
+            color: #73879C;
+            border: 1px solid #DDD;
+        }
+        #connecthingDataTable thead th {
+            position: relative;
+            background-image: none !important;
+        }
+        /* Override the table sorting icons with those of font awesome  */
+        #connecthingDataTable thead th.sorting:after,
+        #connecthingDataTable thead th.sorting_asc:after,
+        #connecthingDataTable thead th.sorting_desc:after {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            display: block;
+            font-family: FontAwesome;
+        }
+        #connecthingDataTable thead th.sorting:after {
+            content: "\f0dc";
+            color: #ddd;
+            font-size: 0.8em;
+            padding-top: 0.12em;
+            opacity: 0.9;
+        }
+        #connecthingDataTable thead th.sorting_asc:after {
+            content: "\f0de";
+            top: 10px;
+        }
+        #connecthingDataTable thead th.sorting_desc:after {
+            content: "\f0dd";
+            top: 6px;
+        }
+
+        /* tooltips positioning to stay within container */
+        .jqstooltip {
+            margin-left: -30px;
+        }
+
+        table .preview-file-image {
+            cursor: pointer;
+            max-width: 40px;
+            max-height: 50px;
+            position: relative;
+            top: 25px;
+            margin-top: -25px;
+        }
+        table .preview-file-icon {
+            max-width: 60px;
+            max-height: 50px;
+        }
+
+        .icheckbox_square-green, .icheckbox_flat-green {
+            transition: all 0s;
+        }
+
+        .form-inline .multiselect-container label.checkbox {
+            padding: 4px 10px;
+        }
+        .form-inline .multiselect-container label.checkbox div {
+            margin-right: 5px;
+        }
+
+        .bulkbuttons {
+            float: left;
+        }
+
+        .preview-outer {
+            height: 50px;
+            width: 40px;
+            cursor: pointer;
+            border-radius: 4px;
+            border: 0px;
+			background-color: #FFF;
+			box-shadow:  0 0 6px  rgba(0,0,0,0.6);
+			-moz-box-shadow: 0 0 6px  rgba(0,0,0,0.6);
+			-webkit-box-shadow: 0 0 6px  rgba(0,0,0,0.6);
+			-o-box-shadow: 0 0 6px  rgba(0,0,0,0.6);
+        }
+
+    </style> 
+
+</head>
+
+<body style="background: #FFFFFF; ">
+
+
+    <div id="widgetContent" class=" " style="width: 100%; padding-top: 10px;">
+        
+        <div id="twinTypeDropdown" style="width: 200px; margin: 15px; display: inline-block;"></div>
+        <div id="twinDropdown" style="width: 200px; margin: 15px; display: inline-block;"></div>
+        <div class="connecThingDataTableOuter table-responsive bg-white border-grey padding-1em" style="overflow: visible;">
+            <div style="display: none;"> 
+                <!-- This is a hidden holder for the action buttons which get placed atop the table at refresh time -->
+                <div class="connecThingDataTableActionButtons">
+                    <input type="file" id="fileInput" onchange="processUploadFile(this.files)"  onclick="$(this).val('');" style="visibility: hidden; position: absolute;">
+                    <button class="btn-add btn btn-success" onclick="$('#fileInput').click(); return false;"> Add &nbsp;<i class="fa fa-plus"></i> </button>
+                    <button class="btn-delete btn btn-danger"> <i class="fa fa-trash"></i> </button>
+                    <button class="btn-download btn btn-success">  Download </button>
+                </div>
+            </div>
+
+            <table id="connecthingDataTable" class="connecthingDataTable tableIncidents" style="width: 100%; padding-top: 5px;">
+                <thead>
+                    <tr>
+                        <th style="padding-left: 12px;"><input type="checkbox" class="flat checkbox-to-select-all"> </th>
+                        <th> &nbsp; </th>
+                        <th>Name</th>
+                        <th>Size</th>
+                        <th>Uploaded</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>    
+            <div class="emptyTableMessage" style="display: none; text-align: center; margin-top: 20px;">
+                No attachments have been added yet
+            </div>
+        </div>
+
+    </div>
+
+
+
+
+    
+    <!--Modal of image -->
+    <div id="modal-preview" class="modal fade bs-example-modal-med" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog modal-med">
+            <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel2">Preview</h4>
+            </div>
+            <div class="modal-body">
+                
+            </div>
+            <div  id="modal-small-footer" class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+
+            </div>
+        </div>
+    </div>
+
+    
+
+    
+
+
+
+    <script src="/ui/vendors/jquery/2.2.4/jquery.min.js"></script>
+    <script src="/ui/vendors/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <!-- Sparkline -->
+    <script src="/ui/vendors/jquery-sparkline/dist/jquery.sparkline.js"></script>
+
+    
+
+    <script src="/ui/vendors/datatables.net/js/jquery.dataTables.min.js"></script>
+    <script src="/ui/vendors/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+    <!-- <script src="/ui/vendors/datatables.net-select/dataTables.select.min.js"></script> -->
+    <script src="/ui/vendors/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <!-- <script src="/ui/vendors/datatables.net-buttons/js/buttons.colVis.min.js"></script> -->
+    <script src="/ui/vendors/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="/ui/vendors/jszip/2.5.0/jszip.min.js"></script>
+    <script src="/ui/vendors/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="/ui/vendors/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+    
+    <script src="/ui/vendors/switchery/dist/switchery.min.js"></script>
+    <script src="/ui/vendors/iCheck/icheck.min.js"></script>
+    <script src="/ui/vendors/pnotify/dist/pnotify.js"></script>
+
+    <script src="/ui/assets/bootstrap-gentelella-theme-for-widgets.js"></script>
+
+    <script src="/ui/assets/widget-utilities.js"></script>
+
+
+    <script>
+    
+        var twinUuid = ''; // Which twin to show the attachments of and upload to.
+
+        // When jQuery has loaded
+        $(function() {
+            console.log('jQuery loaded');
+            // Fill the dropdown with all the twin types
+            widgetUtils.ajaxGet('/api/v1/twintypes/', function(err, apiResponse) {
+                if(err === null && apiResponse) {
+                    var tmpHtml = "<select>";
+                    tmpHtml += '<option value="">Choose a twin type</option>';
+                    for(var tmpIndex = 0; tmpIndex < apiResponse.length; tmpIndex++) {
+                        var tmpTwinType = apiResponse[tmpIndex];
+                        tmpHtml += '<option value="' + tmpTwinType.UUID + '">' + tmpTwinType.name + '</option>';
+                    }
+                    tmpHtml += "</select>";
+                    $('#twinTypeDropdown').html(tmpHtml);
+                    $('#twinTypeDropdown select').off('change').on('change', findAllTwinsOfSelectedType);
+                }
+            });
+        });
+        
+        
+        // Fill the dropdown with all the twins of the tpye chosen
+        var findAllTwinsOfSelectedType = function() {
+            var chosenTwinType = $('#twinTypeDropdown select').val();
+            console.log('Find twins of type', chosenTwinType);
+            // Fill the dropdown with all the twin types
+            widgetUtils.ajaxGet('/api/v1/twins/?digitalTwinType=' + chosenTwinType, function(err, apiResponse) {
+                if(err === null && apiResponse) {
+                    var tmpHtml = "<select>";
+                    for(var tmpIndex = 0; tmpIndex < apiResponse.length; tmpIndex++) {
+                        var tmpTwin = apiResponse[tmpIndex];
+                        tmpHtml += '<option value="' + tmpTwin.UUID + '">' + tmpTwin.name + '</option>';
+                    }
+                    tmpHtml += "</select>";
+                    $('#twinDropdown').html(tmpHtml);
+                    $('#twinDropdown select').off('change').on('change', initTableForTwin);
+                    initTableForTwin();
+                }
+            });
+        };
+
+
+        // Populate the table with attachments of this twin
+        var thisUserAllowedToEdit;
+        var initTableForTwin = function() {
+            var twinUuid = $('#twinDropdown select').val();
+            console.log('Init table for twin', twinUuid);
+            // Also can pass in a specific UUID to a widget using widgetUtils.getUrlParameter('uuid'); 
+            widgetUtils.ajaxGet('/api/v1/twins/' + twinUuid + '/attachments', function(err, attachmentsResponse) {
+                var htmlStr = '';
+                if(err === null) {
+                    console.log('Called API for attachments via UUID and got back ', attachmentsResponse);
+                    console.log('Listing attachments in ', attachmentsResponse);
+                    for(var i = 0; i < attachmentsResponse.length; i++) {
+                        var attachment = attachmentsResponse[i];
+                        var fileLink = '/api/v1/twins/' + twinUuid + '/attachments/' + attachment.filename;
+                        var previewImg = findSuitableFileIcon(attachment);
+                        if(attachment.contentType.indexOf('image') > -1) {
+                            previewImg = '<span class="preview-outer" onclick="showPreview(this)"><img src="' + fileLink + '" class="preview-file-image"/></span>';
+                        }
+                        htmlStr += '<tr data-filelink="' + fileLink + '">';
+                        htmlStr += '<td><input type="checkbox" class="table-row-checkbox flat"></td>';
+                        htmlStr += '<td style="text-align: center;">' + previewImg + '</td>';
+                        htmlStr += '<td>' + attachment.filename + '</td>';
+                        htmlStr += '<td>' + widgetUtils.abbreviateNumber(attachment.length) + '</td>';
+                        htmlStr += '<td>' + widgetUtils.getDateFormatIsoDateTime(attachment.uploadDate) + '</td>';
+                        htmlStr += '</tr>';
+                    }
+                }
+                
+                convertSimpleTableToDatatable($('#connecthingDataTable'), htmlStr);   
+
+                // Confirm current user has device EDIT permissions that include this twin
+                var aclToRequest = [
+                    {"Action": "twins.EDIT", "Resource": "twins/" + twinUuid }
+                ];
+                widgetUtils.runPolicyCheckOnServer(aclToRequest, function(err, aclData) {
+                    thisUserAllowedToEdit = checkAclResource(aclData, "twins.EDIT", "twins/" + twinUuid);
+                    // Hide edit functions if no permission
+                    var jqTableOuter = $('.connecThingDataTableOuter');
+                    if(thisUserAllowedToEdit === true ) {
+                        jqTableOuter.find('.btn-add').show();
+                        jqTableOuter.find('.btn-delete').show();
+                    }
+                    else {
+                        // Don't allow delete if an entry is selected
+                        jqTableOuter.find('.btn-add').remove();
+                        jqTableOuter.find('.btn-delete').remove();
+                    }
+                 });
+                
+                $('.preview-outer').attr('data-placement',"bottom").attr('data-original-title',"Click for preview").tooltip({container: 'body'});
+                
+            });
+        }
+
+        var checkAclResource = function(aclData, ActionToCheck, ResourceToCheck) {
+            var valToReturn = false;
+            if(aclData) {
+                for(var tmpIndex = 0; tmpIndex < aclData.length; tmpIndex++) {
+                    if(aclData[tmpIndex].Action == ActionToCheck && aclData[tmpIndex].Resource == ResourceToCheck) {
+                        if(aclData[tmpIndex].Allowed == true) {
+                            valToReturn = true;
+                        }
+                    }
+                }
+            }
+            return valToReturn;
+        }
+
+
+        var findSuitableFileIcon = function(fileInfo) {
+            var returnVal = '<img src="/ui/images/file-icons/generic-file-icon.svg" class="preview-file-icon"/>';
+            var conType = fileInfo.contentType;
+            if(conType.indexOf('css') > -1) { returnVal = returnVal.replace('dump', 'css'); }
+            if(conType.indexOf('html') > -1) { returnVal = returnVal.replace('dump', 'html'); }
+            if(conType.indexOf('javascript') > -1) { returnVal = returnVal.replace('dump', 'js'); }
+            if(conType.indexOf('json') > -1) { returnVal = returnVal.replace('dump', 'json'); }
+            if(conType.indexOf('pdf') > -1) { returnVal = returnVal.replace('dump', 'pdf'); }
+            if(conType.indexOf('word') > -1) { returnVal = returnVal.replace('dump', 'word'); }
+            return returnVal;
+        }
+
+
+        var showPreview = function(itemClicked) {
+            console.log('Show preview of ', itemClicked);
+            $('#modal-preview .modal-body').html('<img src="' + $(itemClicked).find('img').attr('src') + 
+            '" style="width: 100%; max-width: 100%; max-height: 100%; text-align: center;"/>');
+            $('#modal-preview').modal('show');
+            return false;
+        }
+
+        // Include this css:  <link href="/ui/vendors/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet">
+        // Include the js files as necessary
+        // May want supplemental css as required
+        var convertSimpleTableToDatatable = function(jqDomOfTable, htmlForBody) {
+            // Datatable definition, after the simple html table has been rendered in the DOM
+            // Note avanced usage of dom property: https://datatables.net/reference/option/dom
+            if(window.connecthingDatatable !== undefined && window.connecthingDatatable !== null) { 
+                window.connecthingDatatable.destroy(); 
+            }
+            $('#connecthingDataTable tbody').html(htmlForBody);
+            
+            window.connecthingDatatable = $(jqDomOfTable).DataTable({
+                'pageLength': 5,
+                "lengthMenu": [[5, 10, 50, -1], [5, 10, 50, "All"]],
+                'pagingType': 'simple_numbers',
+                "emptyTable": 'No attachments have been added yet',
+                'hover': true,
+                "dom": '<"top"<"bulkbuttons">f<"switchfilters">>rt<"bottom"ipl>',
+                "oLanguage": {
+                    "sLengthMenu": "Display _MENU_",
+                    "sInfo": "Showing _START_ to _END_ of _TOTAL_ attachments"
+                },
+                "columns": [
+                    { className: "comdavra-datatable-cell", width: '5%', orderable: false },
+                    { className: "comdavra-datatable-cell", width: '15%'},
+                    { className: "comdavra-datatable-cell", width: '35%'},
+                    { className: "comdavra-datatable-cell", width: '20%'},
+                    { className: "comdavra-datatable-cell", width: '25%'}
+                ],
+                buttons: [
+                    'copy', 'csv', 'print'
+                ]
+            });
+            $('#connecthingDataTable_filter input').addClass('input-sm');
+        
+            window.connecthingDatatable.order([2, 'desc' ]).draw(); // Sort the table by a column
+            
+            // Apply tooltips to these new elements
+            if($().tooltip) {
+                $('[data-toggle="tooltip"]').tooltip({
+                    container: 'body'
+                });
+            }
+            
+
+            // Draw iCheckboxes anytime the pagination changes etc
+            $('#connecthingDataTable').on('draw.dt', function() {
+                $('.iCheck-helper').remove();
+                inititialiseICheckCheckboxes();
+                noticeClickOnCheckboxes()
+            });          
+            inititialiseICheckCheckboxes();
+            noticeClickOnCheckboxes();
+            
+            showTableActionButtonsIfAppropriate();
+        }
+
+
+        var noticeClickOnCheckboxes = function() {
+            $('.table-row-checkbox').off("ifChanged").on("ifChanged", function(events) {
+                console.log('iCheck checkbox clicked for single row ');
+                setTimeout(function() { // Need time for the jquery plugin to complete and apply/remove the checked class
+                    showTableActionButtonsIfAppropriate();
+                }, 100);
+            });
+            // Notice if select-all-checkbox is clicked
+            $('.checkbox-to-select-all').off("ifChanged").on("ifChanged", function(events) {
+                console.log('iCheck checkbox clicked to select/deselect all rows ');
+                var newState = events.target.checked;
+                $(this).closest('.connecThingDataTableOuter').find('.connecthingDataTable .davra-checkbox input').prop('checked', newState).iCheck('update');
+                $(this).closest('.connecThingDataTableOuter').find('.connecthingDataTable .davra-checkbox').iCheck('update');
+                showTableActionButtonsIfAppropriate();
+            });
+        };
+
+                
+        // Based on which rows of the devices table are selected, show whichever bulk-action buttons are appropriate
+        var showTableActionButtonsIfAppropriate = function() {
+            // Hide all the buttons then show whichever ones are appropriate
+            var jqTableOuter = $('.connecThingDataTableOuter');
+            jqTableOuter.find('.bulkbuttons').html($('.connecThingDataTableActionButtons').html());
+            // Hide all buttons to start then show whichever are appropriate
+            jqTableOuter.find('.bulkbuttons .btn').hide();      
+            if (thisUserAllowedToEdit === true)
+                jqTableOuter.find('.bulkbuttons .btn-add').show();
+            // All devices selected
+            var countDevicesSelected = 0;
+            jqTableOuter.find('.table-row-checkbox').each(function(jqIndex, jqObject) {
+                if($(jqObject).parent().hasClass('checked') == true) {
+                    countDevicesSelected++;
+                }
+            });
+            //console.log('Showing appropriate bulk action buttons with rows selected: ',countDevicesSelected);
+            if(countDevicesSelected > 0) {
+                jqTableOuter.find('.bulkbuttons .btn-delete').show();
+            }
+            if(countDevicesSelected > 0) {
+                jqTableOuter.find('.bulkbuttons .btn-download').show();
+            }
+
+            setupClickActionsForTableActionButtons();
+        }
+
+
+        var sendPNotify = function(notificationType, msgToShow){
+            if(notificationType == 'success') {
+                widgetUtils.PNotifySuccess(msgToShow);
+            }    
+            if(notificationType == 'info') {
+                widgetUtils.PNotifyInfo(msgToShow);
+            }
+            if(notificationType == 'error') {
+                widgetUtils.PNotifyError(msgToShow);
+            }
+        };
+
+
+
+        // Notice when the buttons along the top of the table are clicked
+        // Eg Delete or download buttons
+        var setupClickActionsForTableActionButtons = function() {
+
+            // Delete button for all selected items
+            $('.connecThingDataTableOuter .bulkbuttons .btn-delete').off('click').on('click', function() {   
+                console.log('Delete button clicked');  
+                $('.connecThingDataTableOuter').find('.table-row-checkbox').each(function(jqIndex, jqObject) {
+                    if($(jqObject).parent().hasClass('checked') == true) {
+                        var fileToDelete = $(this).closest('tr').attr('data-filelink');
+                        console.log('Deleting ', fileToDelete);  
+                        $.ajax({
+                            url: fileToDelete,
+                            type: 'DELETE', 
+                            cache: false,
+                            processData: false, // Don't process the files
+                            success: function(data, textStatus, jqXHR) {
+                                if(textStatus == 'success') {
+                                    sendPNotify('success', 'File deleted');
+                                    var tableRow = $('.connecThingDataTableOuter').find('tr[data-filelink="' + fileToDelete + '"]');
+                                    window.connecthingDatatable.row(tableRow).remove().draw();  // Update the table listing
+                                    showTableActionButtonsIfAppropriate();
+                                } else {
+                                    console.log('ERRORS: ' + textStatus);
+                                    sendPNotify('error', 'Deletion Failed');
+                                }
+                            },
+                            error: function(jqXHR, textStatus, errorThrown) {
+                                console.log('ERRORS: ' + textStatus);
+                                sendPNotify('error', 'Deletion Failed');
+                            }
+                        }, fileToDelete);
+
+                    }
+                });
+            });
+
+            // Download button
+            $('.connecThingDataTableOuter .bulkbuttons .btn-download').off('click').on('click', function() { 
+                console.log('Download button clicked');  
+                $('.connecThingDataTableOuter').find('.table-row-checkbox').each(function(jqIndex, jqObject) {
+                    if($(jqObject).parent().hasClass('checked') == true) {
+                        console.log('Downloading ', $(this).closest('tr').attr('data-filelink'));  
+                        downloadFile($(this).closest('tr').attr('data-filelink'));
+                    }
+                });
+                setTimeout(function() {
+                    $('.connecThingDataTableOuter .bulkbuttons .btn-download').blur();
+                }, 100)
+                return false;
+            });
+            
+        };
+
+        var downloadFile = function(filePath){
+            var link=document.createElement('a');
+            link.href = filePath;
+            link.download = filePath.substr(filePath.lastIndexOf('/') + 1);
+            link.click();
+        }
+
+        
+        var processUploadFile = function(files) {
+            console.log('File upload/change started ', files[0], files);
+            var fileToSend = files[0]; 
+            var twinUuid = $('#twinDropdown select').val();
+            $.ajax({
+                url: '/api/v1/twins/' + twinUuid + '/attachments/' + fileToSend.name,
+                type: 'PUT',
+                data: files[0], 
+                cache: false,
+                processData: false, // Don't process the files
+                contentType: files[0].type, // Set content type to false as jQuery will tell the server its a query string request
+                success: function(data, textStatus, jqXHR) {
+                    if(typeof data.error === 'undefined') {
+                        sendPNotify('success', 'Uploaded ok');
+                        console.log('Upload complete');
+                        initTableForTwin();
+                    } else {
+                        console.log('ERRORS: ' + data.error);
+                        sendPNotify('error', 'Upload Failed');
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log('ERRORS: ' + textStatus);
+                    sendPNotify('error', 'Upload Failed');
+                }
+            });
+
+
+        }
+
+
+        // This function will get called by the Connecthing Platform when the iframe has fully loaded
+        // Do not change the name of this function
+        function connecthingWidgetInit(context) {
+            console.log('Init: context arrived, starting widget initialisation');
+            //Listen for filter updates
+            if(context && context.filters) {
+                context.filters.subscribe(handleFilterChange);
+            }
+        }
+
+        // This is an example of noticing the page filters have changed
+        function handleFilterChange(filters) {
+            console.log('widget filterChange occurred ', filters);
+            $('#myFilterValues').text(JSON.stringify(filters));
+        }
+
+
+        
+    </script>
+</body>
+</html>
